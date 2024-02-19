@@ -1,3 +1,7 @@
 # Northcoders News API
 
-For instructions, please head over to [L2C NC News](https://l2c.northcoders.com/courses/be/nc-news).
+SETUP
+Please create neccessary .env files for the databases:
+.env.test 
+.env.development
+Database names are nc_news_test and nc_news respectively.
