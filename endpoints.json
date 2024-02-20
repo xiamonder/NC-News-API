@@ -41,5 +41,19 @@
         "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
       }
     }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves comments data of specified article",
+    "queries": ["article_id"],
+    "exampleResponse": {
+      "comments": {
+        "article_id": 1,
+        "author": "butter_bridge",
+        "body": "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+        "comment_id": 2,
+        "created_at": "2020-10-31T02:03:00.000Z",
+        "votes": 14
+      }
+    }
   }
 }
