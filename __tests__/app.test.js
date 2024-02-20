@@ -158,7 +158,6 @@ describe("get articles", () => {
       .expect(200)
       .then((response) => {
         const { articles } = response.body;
-
         expect(articles.length).toBe(13);
         expect(Array.isArray(articles)).toBe(true);
         expect(articles).toBeSortedBy("created_at", {
@@ -208,6 +207,84 @@ describe("get articles", () => {
           "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
         );
         expect(articles[6]).toHaveProperty("comment_count", "11");
+      });
+  });
+});
+
+describe("get comments by articles id", () => {
+  test("should respond with an object with an array of comments", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments.length).toBe(11);
+      });
+  });
+
+  test("comment objects should have the correct keys", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        comments.forEach((comment) => {
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.votes).toBe("number");
+          expect(typeof comment.created_at).toBe("string");
+          expect(typeof comment.author).toBe("string");
+          expect(typeof comment.body).toBe("string");
+          expect(typeof comment.article_id).toBe("number");
+        });
+      });
+  });
+
+  test("should return correct data for comments", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        const expected = {
+          article_id: 1,
+          author: "butter_bridge",
+          body: "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+          comment_id: 2,
+          created_at: "2020-10-31T02:03:00.000Z",
+          votes: 14,
+        };
+        expect(comments[0]).toEqual(expected);
+      });
+  });
+
+  test("Should respond with empty array for article without comments", () => {
+    return request(app)
+      .get("/api/articles/10/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments).toEqual([]);
+      });
+  });
+
+  test("should respond with 404 for valid but non existent request", () => {
+    return request(app)
+      .get("/api/articles/1000/comments")
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("article not found");
+      });
+  });
+
+  test("should respond with 400 error for invalid request", () => {
+    return request(app)
+      .get("/api/articles/robot/comments")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("Bad request");
       });
   });
 });
