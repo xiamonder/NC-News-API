@@ -2,8 +2,10 @@ const { fetchAPI } = require("../models/api.models");
 
 exports.getAPI = (req, res, next) => {
   fetchAPI()
-    .then((apiDetails) => {
-      res.status(200).send({ apiDetails });
+    .then((apiData) => {
+      res.status(200).send({ apiData });
     })
-    .catch(next);
+    .catch((err) => {
+      next(err);
+    });
 };
