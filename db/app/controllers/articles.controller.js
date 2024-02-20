@@ -3,6 +3,7 @@ const {
   fetchArticles,
   fetchArticleComments,
   addComment,
+  alterVotes,
 } = require("../models/articles.model");
 
 exports.getArticleById = (req, res, next) => {
@@ -84,3 +85,20 @@ as it shared the error code 23503 with other tests which should return 400 error
 //       next(err);
 //     });
 // };
+
+
+exports.updateVotes =(req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+  const promises = [
+    alterVotes(article_id, inc_votes),
+    fetchArticleById(article_id)
+  ];
+  Promise.all(promises)
+    .then((promiseResolutions) => {
+      res.status(200).send({ article: promiseResolutions[0][0] });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};

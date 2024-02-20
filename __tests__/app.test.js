@@ -22,7 +22,7 @@ describe("invalid enpoint error handling", () => {
   });
 });
 
-describe("get topics", () => {
+describe("GET /api/topics", () => {
   test("should respond with an array of topic objects ", () => {
     return request(app)
       .get("/api/topics")
@@ -61,7 +61,7 @@ describe("get topics", () => {
   });
 });
 
-describe("get api", () => {
+describe("GET /api", () => {
   let endpoints;
   beforeAll(async () => {
     endpoints = await getFileContents("endpoints.json");
@@ -89,7 +89,7 @@ describe("get api", () => {
   });
 });
 
-describe("get articles by id", () => {
+describe("GET /api/articles/:article_id", () => {
   test("should respond with an object with correct keys ", () => {
     return request(app)
       .get("/api/articles/1")
@@ -151,7 +151,7 @@ describe("get articles by id", () => {
   });
 });
 
-describe("get articles", () => {
+describe("GET /api/articles", () => {
   test("should respond with sorted array of article objects ", () => {
     return request(app)
       .get("/api/articles")
@@ -211,7 +211,7 @@ describe("get articles", () => {
   });
 });
 
-describe("get comments by articles id", () => {
+describe("GET /api/articles/:article_id/comments", () => {
   test("should respond with an object with an array of comments", () => {
     return request(app)
       .get("/api/articles/1/comments")
@@ -289,7 +289,7 @@ describe("get comments by articles id", () => {
   });
 });
 
-describe("Post comment by articles id", () => {
+describe("POST /api/articles/:article_id/comments", () => {
   test("should respond with object with correct keys", () => {
     const body = {
       username: "lurker",
@@ -332,7 +332,7 @@ describe("Post comment by articles id", () => {
         expect(comment).toHaveProperty("votes", 0);
       });
   });
-  test("should respond with object with correct properties", () => {
+  test("should be included in comments for target article", () => {
     const body = {
       username: "lurker",
       body: "robots are robots because robot makes robot",
@@ -404,6 +404,80 @@ describe("Post comment by articles id", () => {
     };
     return request(app)
       .post("/api/articles/1/comments")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("should respond with updated article", () => {
+    const body = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { article } = response.body;
+        const expected = {
+        article_id: 1,
+        title: 'Living in the shadow of a great man',
+        topic: 'mitch',
+        author: 'butter_bridge',
+        body: 'I find this existence challenging',
+        created_at: '2020-07-09T19:11:00.000Z',
+        votes: 105,
+        article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
+      }
+        expect(typeof article).toBe("object");
+        expect(Array.isArray(article)).toBe(false);
+        expect(article).toEqual(expected)
+      });
+  });
+
+  test("should allow subtraction of votes", () => {
+    const body = { inc_votes: -10 };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { article } = response.body;
+        expect(article.votes).toBe(90);
+      });
+  });
+
+  test("should respond with 404 for valid but non existent article request", () => {
+    const body = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/articles/1000")
+      .send(body)
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("article not found");
+      });
+  });
+
+  test("should respond with 400 error for invalid article request", () => {
+    const body = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/articles/robot")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("should respond with 400 error for invalid update", () => {
+    const body = { inc_votes: "robot" };
+    return request(app)
+      .patch("/api/articles/1")
       .send(body)
       .expect(400)
       .then((response) => {
