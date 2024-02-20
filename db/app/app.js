@@ -1,6 +1,6 @@
 const express = require("express");
 const { getTopics } = require("./controllers/topics.controller");
-const { getArticleById, getArticles, getArticleComments } = require("./controllers/articles.controller");
+const { getArticleById, getArticles, getArticleComments, postComment } = require("./controllers/articles.controller");
 const { getAPI } = require("./controllers/api.controller.js");
 const {
   handleCustomErrors,
@@ -9,6 +9,8 @@ const {
 } = require("./controllers/errors.controller.js");
 
 const app = express();
+
+app.use(express.json());
 
 app.get("/api/topics", getTopics);
 
@@ -19,6 +21,8 @@ app.get('/api/articles', getArticles)
 app.get("/api/articles/:article_id", getArticleById);
 
 app.get("/api/articles/:article_id/comments", getArticleComments);
+
+app.post("/api/articles/:article_id/comments", postComment);
 
 app.all("/api/*", (req, res) => {
   res.status(404).send({ msg: "Page not found" });
