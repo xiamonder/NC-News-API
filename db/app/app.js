@@ -1,16 +1,17 @@
 const express = require("express");
-const {getTopics} = require('./controllers/topics.controller');
+const { getTopics } = require("./controllers/topics.controller");
+const { getAPI } = require("./controllers/api.controller.js");
 const {
   handleCustomErrors,
   handlePsqlErrors,
   handleServerErrors,
-} = require("./errors/index.js");
-
+} = require("./controllers/errors.controller.js");
 
 const app = express();
 
-
 app.get("/api/topics", getTopics);
+
+app.get("/api", getAPI);
 
 app.all("/api/*", (req, res) => {
   res.status(404).send({ msg: "Page not found" });
@@ -21,6 +22,5 @@ app.use(handleCustomErrors);
 app.use(handlePsqlErrors);
 
 app.use(handleServerErrors);
-
 
 module.exports = app;

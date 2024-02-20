@@ -4,6 +4,8 @@ const {
   formatComments,
 } = require("../db/seeds/utils");
 
+const { getFileContents } = require("../file-utils/getFileContents");
+
 describe("convertTimestampToDate", () => {
   test("returns a new object", () => {
     const timestamp = 1557572706232;
@@ -100,5 +102,28 @@ describe("formatComments", () => {
     const comments = [{ created_at: timestamp }];
     const formattedComments = formatComments(comments, {});
     expect(formattedComments[0].created_at).toEqual(new Date(timestamp));
+  });
+});
+
+describe("getFileContents", () => {
+  test("should return correct information", () => {
+    const expected = {
+      "GET /api": {
+        description:
+          "serves up a json representation of all the available endpoints of the api",
+      },
+    };
+    getFileContents("dummyFile.json").then((fileContents) => {
+      expect(fileContents).toEqual(expected);
+      expect(typeof fileContents).toBe("object");
+    });
+  });
+
+  test("should return error if improper file path", () => {
+    const consoleSpy = jest.spyOn(console, "log");
+    return getFileContents("wrongFileName.json").then(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Something went wrong...");
+      expect(consoleSpy).toHaveBeenCalledTimes(2);
+    });
   });
 });

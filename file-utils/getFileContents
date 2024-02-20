@@ -1,0 +1,11 @@
+const fs = require("fs/promises");
+
+exports.getFileContents = async function (fileName) {
+  try {
+    const fileContents = await fs.readFile(`${__dirname}/../${fileName}`);
+    return JSON.parse(fileContents.toString());
+  } catch (error) {
+    console.log("Something went wrong...");
+    console.log(error);
+  }
+};
