@@ -71,9 +71,9 @@ describe("get api", () => {
       .get("/api")
       .expect(200)
       .then((response) => {
-        const { apiDetails } = response.body;
-        console.log(apiDetails);
-        expect(typeof apiDetails).toBe("object");
+        const { apiData } = response.body;
+        expect(typeof apiData).toBe("object");
+        expect(Array.isArray(apiData)).toBe(false);
       });
   });
 
@@ -82,8 +82,70 @@ describe("get api", () => {
       .get("/api")
       .expect(200)
       .then((response) => {
-        const { apiDetails } = response.body;
-        expect(apiDetails).toEqual(endpoints);
+        const { apiData } = response.body;
+        expect(apiData).toEqual(endpoints);
+      });
+  });
+});
+
+describe("get articles by id", () => {
+  test("should respond with an object with correct keys ", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then((response) => {
+        const { article } = response.body;
+        expect(typeof article).toBe("object");
+        expect(Array.isArray(article)).toBe(false);
+        expect(typeof article.author).toBe("string");
+        expect(typeof article.title).toBe("string");
+        expect(typeof article.article_id).toBe("number");
+        expect(typeof article.body).toBe("string");
+        expect(typeof article.topic).toBe("string");
+        expect(typeof article.created_at).toBe("string");
+        expect(typeof article.votes).toBe("number");
+        expect(typeof article.article_img_url).toBe("string");
+      });
+  });
+
+  test("should return correct data for article", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then((response) => {
+        const { article } = response.body;
+        const expected = {
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T19:11:00.000Z",
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        };
+        expect(article).toEqual(expected);
+      });
+  });
+
+  test("should respond with 404 for valid but non existent request", () => {
+    return request(app)
+      .get("/api/articles/1000")
+      .expect(404)
+      .then((response) => {
+        const {msg} = response.body;
+        expect(msg).toBe("article not found");
+      });
+  });
+
+  test('should respond with 400 error for invalid request', () => {
+    return request(app)
+      .get("/api/articles/robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("Bad request");
       });
   });
 });
