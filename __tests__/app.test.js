@@ -3,6 +3,7 @@ const app = require("../db/app/app.js");
 const seed = require("../db/seeds/seed.js");
 const db = require("../db/connection.js");
 const testData = require("../db/data/test-data/index.js");
+const { getFileContents } = require("../file-utils/getFileContents");
 
 beforeEach(() => {
   return seed(testData);
@@ -28,7 +29,7 @@ describe("get topics", () => {
       .then((response) => {
         const topics = response.body.topics;
         expect(topics.length).toBe(3);
-        expect(Array.isArray(topics)).toBe(true)
+        expect(Array.isArray(topics)).toBe(true);
       });
   });
   test("array should contain correct properties", () => {
@@ -44,17 +45,45 @@ describe("get topics", () => {
       });
   });
 
-    test("should respond with correct values", () => {
-      return request(app)
-        .get("/api/topics")
-        .expect(200)
-        .then((response) => {
-          const topics = response.body.topics;
-          expect(topics[0]).toHaveProperty("slug", "mitch");
-          expect(topics[0]).toHaveProperty(
-            "description",
-            "The man, the Mitch, the legend"
-          );
-        });
-    });
+  test("should respond with correct values", () => {
+    return request(app)
+      .get("/api/topics")
+      .expect(200)
+      .then((response) => {
+        const { topics } = response.body;
+        expect(topics[0]).toHaveProperty("slug", "mitch");
+        expect(topics[0]).toHaveProperty(
+          "description",
+          "The man, the Mitch, the legend"
+        );
+      });
+  });
+});
+
+describe("get api", () => {
+  let endpoints;
+  beforeAll(async () => {
+    endpoints = await getFileContents("endpoints.json");
+  });
+
+  test("should respond with an object", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then((response) => {
+        const { apiDetails } = response.body;
+        console.log(apiDetails);
+        expect(typeof apiDetails).toBe("object");
+      });
+  });
+
+  test("should contain correct information", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then((response) => {
+        const { apiDetails } = response.body;
+        expect(apiDetails).toEqual(endpoints);
+      });
+  });
 });
