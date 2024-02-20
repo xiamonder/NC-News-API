@@ -146,7 +146,7 @@ describe("get articles by id", () => {
       .expect(400)
       .then((response) => {
         const { msg } = response.body;
-        expect(msg).toBe("Bad request");
+        expect(msg).toBe("bad request");
       });
   });
 });
@@ -284,7 +284,131 @@ describe("get comments by articles id", () => {
       .expect(400)
       .then((response) => {
         const { msg } = response.body;
-        expect(msg).toBe("Bad request");
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("Post comment by articles id", () => {
+  test("should respond with object with correct keys", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { comment } = response.body;
+        expect(typeof comment).toBe("object");
+        expect(Array.isArray(comment)).toBe(false);
+        expect(typeof comment.comment_id).toBe("number");
+        expect(typeof comment.votes).toBe("number");
+        expect(typeof comment.created_at).toBe("string");
+        expect(typeof comment.author).toBe("string");
+        expect(typeof comment.body).toBe("string");
+        expect(typeof comment.article_id).toBe("number");
+      });
+  });
+  test("should respond with object with correct properties", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { comment } = response.body;
+        expect(comment).toHaveProperty("article_id", 1);
+        expect(comment).toHaveProperty("author", "lurker");
+        expect(comment).toHaveProperty(
+          "body",
+          "robots are robots because robot makes robot"
+        );
+        expect(comment).toHaveProperty("comment_id", 19);
+        expect(comment).toHaveProperty("votes", 0);
+      });
+  });
+  test("should respond with object with correct properties", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        return request(app)
+          .get("/api/articles/1/comments")
+          .expect(200)
+          .then((getResponse) => {
+            const { comments } = getResponse.body;
+            expect(Array.isArray(comments)).toBe(true);
+            expect(comments.length).toBe(12);
+          });
+      });
+  });
+
+  test("should respond with 404 for valid but non existent article request", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/1000/comments")
+      .send(body)
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("article not found");
+      });
+  });
+
+  test("should respond with 400 error for invalid article request", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/robot/comments")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("should respond with 400 error for invalid body", () => {
+    const body = {
+      username: "lurker",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("should respond with 400 error for invalid username", () => {
+    const body = {
+      username: "robot",
+      body: "robots are robots because robot makes robot",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
       });
   });
 });
