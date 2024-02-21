@@ -35,14 +35,30 @@ exports.addComment = (article_id, comment) => {
     `INSERT INTO comments (article_id, author, body) VALUES %L RETURNING *;`,
     [[article_id, comment.username, comment.body]]
   );
-  return db.query(queryString).then(({ rows }) => {
-    return rows;
-  });
+  return db
+    .query(queryString)
+    .then(({ rows }) => {
+      return rows[0];
+    })
+    .catch((err) => {
+      if (err.code === "23503") {
+        return Promise.reject({ status: 404, msg: "username not found" });
+      } else return Promise.reject(err);
+    });
 };
 
-exports.alterVotes = (article_id, inc_votes) => {
-return db.query( `UPDATE articles
+exports.alterVotes = (article_id, inc_votes = 0) => {
+  return db
+    .query(
+      `UPDATE articles
   SET votes = votes + $1
-  WHERE article_id = $2 RETURNING *;`, [inc_votes, article_id]).then(({rows})=> {
-    return rows
-  })}
+  WHERE article_id = $2 RETURNING *;`,
+      [inc_votes, article_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "article not found" });
+      }
+      return rows[0];
+    });
+};

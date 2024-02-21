@@ -384,6 +384,30 @@ describe("POST /api/articles/:article_id/comments", () => {
         expect(comment).toHaveProperty("votes", 0);
       });
   });
+  test("should ignore unneccesary info", () => {
+    const body = {
+      username: "lurker",
+      body: "robots are robots because robot makes robot",
+      nickname: "lurkerino",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { comment } = response.body;
+        expect(comment).toHaveProperty("article_id", 1);
+        expect(comment).toHaveProperty("author", "lurker");
+        expect(comment).toHaveProperty(
+          "body",
+          "robots are robots because robot makes robot"
+        );
+        expect(comment).toHaveProperty("comment_id", 19);
+        expect(comment).toHaveProperty("votes", 0);
+        expect(comment).not.toHaveProperty("nickname", "lurkerino");
+        expect(typeof comment.nickname).toBe("undefined");
+      });
+  });
   test("should be included in comments for target article", () => {
     const body = {
       username: "lurker",
@@ -449,7 +473,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       });
   });
 
-  test("should respond with 400 error for invalid username", () => {
+  test("should respond with 404 error for invalid username", () => {
     const body = {
       username: "robot",
       body: "robots are robots because robot makes robot",
@@ -457,10 +481,10 @@ describe("POST /api/articles/:article_id/comments", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send(body)
-      .expect(400)
+      .expect(404)
       .then((response) => {
         const { msg } = response.body;
-        expect(msg).toBe("bad request");
+        expect(msg).toBe("username not found");
       });
   });
 });
@@ -503,6 +527,17 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 
+  test("should respond with unchanged article if no increment included", () => {
+    const body = {};
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { article } = response.body;
+        expect(article.votes).toBe(100);
+      });
+  });
   test("should respond with 404 for valid but non existent article request", () => {
     const body = { inc_votes: 5 };
     return request(app)
