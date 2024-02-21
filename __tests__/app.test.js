@@ -210,6 +210,25 @@ describe("GET /api/articles", () => {
         })
       });
 });
+test("should return empty array for valid topic query without associated article", () => {
+  return request(app)
+    .get("/api/articles?topic=paper")
+    .expect(200)
+    .then((response) => {
+      const { articles } = response.body;
+      expect(articles).toEqual([]);
+      });
+    });
+
+  test("should return 404 for topic query that doesn't exist", () => {
+    return request(app)
+      .get("/api/articles?topic=robot")
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("topic not found");
+      });
+  });
 })
 
 describe("GET /api/users", () => {

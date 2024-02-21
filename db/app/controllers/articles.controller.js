@@ -5,6 +5,7 @@ const {
   addComment,
   alterVotes,
 } = require("../models/articles.model");
+const { fetchTopics, fetchTopicBySlug } = require("../models/topics.model");
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -18,10 +19,14 @@ exports.getArticleById = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  const {topic} = req.query
-  fetchArticles(topic)
-    .then((articles) => {
-      res.status(200).send({ articles });
+  const { topic } = req.query;
+  const promises = [fetchArticles(topic)];
+  if (topic) {
+    promises.push(fetchTopicBySlug(topic));
+  }
+  Promise.all(promises)
+    .then((promiseResolutions) => {
+      res.status(200).send({ articles: promiseResolutions[0] });
     })
     .catch((err) => {
       next(err);
