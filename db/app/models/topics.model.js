@@ -1,9 +1,7 @@
 const db = require("../../connection");
 
-
-
 exports.fetchTopics = () => {
-    return db.query(`SELECT * FROM topics`).then(({rows})=>{
-        return rows
-    })
-}
+  return db.query(`SELECT * FROM topics`).then(({ rows }) => {
+    return rows;
+  });
+};
