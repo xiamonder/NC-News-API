@@ -19,7 +19,11 @@ const {
 } = require("./controllers/comments.controller.js");
 const { getUsers } = require("./controllers/users.controller.js");
 
-const app = express();
+const app = express();\
+
+const { PORT = 9090 } = process.env;
+
+app.listen(PORT, () => console.log(`Listening on ${PORT}...`));
 
 app.use(express.json());
 
