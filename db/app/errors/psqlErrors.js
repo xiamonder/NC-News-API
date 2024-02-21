@@ -8,9 +8,7 @@ exports.handlePsqlErrors = (err, request, response, next) => {
     err.code === "23503"
   ) {
     response.status(400).send({ msg: "bad request" });
-  // } else if (err.code === "23503") {
-  //   response.status(404).send({ msg: "article not found" });
   } else {
     next(err);
   }
-}
+};
