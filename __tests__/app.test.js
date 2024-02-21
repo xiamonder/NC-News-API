@@ -270,6 +270,7 @@ describe("GET /api/articles/:article_id", () => {
         expect(typeof article.created_at).toBe("string");
         expect(typeof article.votes).toBe("number");
         expect(typeof article.article_img_url).toBe("string");
+        expect(typeof article.comment_count).toBe('string')
       });
   });
 
@@ -289,7 +290,7 @@ describe("GET /api/articles/:article_id", () => {
           votes: 100,
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-        };
+        comment_count: '11'};
         expect(article).toEqual(expected);
       });
   });
