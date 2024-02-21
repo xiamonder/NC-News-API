@@ -13,7 +13,10 @@ const {
   handlePsqlErrors,
   handleServerErrors,
 } = require("./controllers/errors.controller.js");
-const { deleteComment, getComments } = require("./controllers/comments.controller.js");
+const {
+  deleteComment,
+  getComments,
+} = require("./controllers/comments.controller.js");
 
 const app = express();
 
@@ -23,7 +26,7 @@ app.get("/api", getAPI);
 
 app.get("/api/topics", getTopics);
 
-app.get("/api/comments", getComments)
+app.get("/api/comments", getComments);
 
 app.get("/api/articles", getArticles);
 
