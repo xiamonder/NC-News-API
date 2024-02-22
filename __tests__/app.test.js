@@ -142,7 +142,7 @@ describe("GET /api/comments", () => {
 });
 
 describe("GET /api/articles", () => {
-  test("should respond with sorted array of article objects ", () => {
+  test("should respond with sorted array of user objects ", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
@@ -733,6 +733,47 @@ describe("DELETE /api/comments/:comment_id", () => {
       .then((response) => {
         const { msg } = response.body;
         expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("should respond with an object with correct keys ", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then((response) => {
+        const { user } = response.body;
+        expect(typeof user).toBe("object");
+        expect(Array.isArray(user)).toBe(false);
+        expect(typeof user.username).toBe("string");
+        expect(typeof user.name).toBe("string");
+        expect(typeof user.avatar_url).toBe("string");
+      });
+  });
+
+  test("should return correct data for article", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then((response) => {
+        const { user } = response.body;
+        const expected = {
+          name: "jonny",
+          username: "butter_bridge",
+          avatar_url:"https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        };
+        expect(user).toEqual(expected);
+      });
+  });
+
+  test("should respond with 404 for valid but non existent request", () => {
+    return request(app)
+      .get("/api/users/robto")
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("user not found");
       });
   });
 });
