@@ -1,49 +1,28 @@
 const express = require("express");
-const { getTopics } = require("./controllers/topics.controller");
-const {
-  getArticleById,
-  getArticles,
-  getArticleComments,
-  postComment,
-  updateVotes,
-} = require("./controllers/articles.controller");
-const { getAPI } = require("./controllers/api.controller.js");
+
 const {
   handleCustomErrors,
   handlePsqlErrors,
   handleServerErrors,
 } = require("./controllers/errors.controller.js");
-const {
-  deleteComment,
-  getComments,
-} = require("./controllers/comments.controller.js");
-const { getUsers } = require("./controllers/users.controller.js");
+
+const apiRouter = require("./routers/api.router.js");
+const userRouter = require("./routers/users.router.js");
+const topicRouter = require("./routers/topics.router.js");
+const articleRouter = require("./routers/articles.router.js");
+const commentRouter = require("./routers/comments.router.js");
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/api", getAPI);
+app.use("/api", apiRouter);
 
-app.get("/api/topics", getTopics);
+app.get("/", (req, res) => {
+  res.status(200).send({ msg: "Connected to NC News API, please go to /api for available endpoints" });
+});
 
-app.get("/api/comments", getComments);
-
-app.get("/api/articles", getArticles);
-
-app.get("/api/users", getUsers);
-
-app.get("/api/articles/:article_id", getArticleById);
-
-app.get("/api/articles/:article_id/comments", getArticleComments);
-
-app.post("/api/articles/:article_id/comments", postComment);
-
-app.patch("/api/articles/:article_id", updateVotes);
-
-app.delete("/api/comments/:comment_id", deleteComment);
-
-app.all("/api/*", (req, res) => {
+app.all("/*", (req, res) => {
   res.status(404).send({ msg: "Page not found" });
 });
 
