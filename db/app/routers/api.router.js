@@ -4,7 +4,7 @@ const commentRouter = require("./comments.router");
 const topicRouter = require("./topics.router");
 const userRouter = require("./users.router");
 
-const apiRouter = require("express").Router(); 
+const apiRouter = require("express").Router();
 
 apiRouter.get("/", getAPI);
 
@@ -20,4 +20,4 @@ apiRouter.all("/*", (req, res) => {
   res.status(404).send({ msg: "Page not found" });
 });
 
-module.exports= apiRouter
+module.exports = apiRouter;

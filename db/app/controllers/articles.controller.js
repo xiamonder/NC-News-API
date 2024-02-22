@@ -3,9 +3,9 @@ const {
   fetchArticles,
   fetchArticleComments,
   addComment,
-  alterVotes,
+  alterArticleVotes,
 } = require("../models/articles.model");
-const { fetchTopics, fetchTopicBySlug } = require("../models/topics.model");
+const { fetchTopicBySlug } = require("../models/topics.model");
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -65,10 +65,10 @@ exports.postComment = (req, res, next) => {
     });
 };
 
-exports.updateVotes = (req, res, next) => {
+exports.updateArticleVotes = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes } = req.body;
-  alterVotes(article_id, inc_votes)
+  alterArticleVotes(article_id, inc_votes)
     .then((article) => {
       res.status(200).send({ article });
     })

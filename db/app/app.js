@@ -19,7 +19,11 @@ app.use(express.json());
 app.use("/api", apiRouter);
 
 app.get("/", (req, res) => {
-  res.status(200).send({ msg: "Connected to NC News API, please go to /api for available endpoints" });
+  res
+    .status(200)
+    .send({
+      msg: "Connected to NC News API, please go to /api for available endpoints",
+    });
 });
 
 app.all("/*", (req, res) => {
