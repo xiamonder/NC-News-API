@@ -15,14 +15,24 @@ exports.fetchArticleById = (articleId) => {
     });
 };
 
-exports.fetchArticles = (topic, sort_by = 'created_at', order = 'DESC') => {
-  if (!["author", "title", "article_id", "topic", "created_at", 'votes', 'comment_count'].includes(sort_by.toLowerCase())) {
+exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
+  if (
+    ![
+      "author",
+      "title",
+      "article_id",
+      "topic",
+      "created_at",
+      "votes",
+      "comment_count",
+    ].includes(sort_by.toLowerCase())
+  ) {
     return Promise.reject({ status: 400, msg: "invalid sort query" });
   }
 
-    if (!["ASC", "DESC"].includes(order.toUpperCase())) {
-      return Promise.reject({ status: 400, msg: "invalid order query" });
-    }
+  if (!["ASC", "DESC"].includes(order.toUpperCase())) {
+    return Promise.reject({ status: 400, msg: "invalid order query" });
+  }
 
   let queryString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id`;
   const queryValues = [];
@@ -64,7 +74,7 @@ exports.addComment = (article_id, comment) => {
     });
 };
 
-exports.alterVotes = (article_id, inc_votes = 0) => {
+exports.alterArticleVotes = (article_id, inc_votes = 0) => {
   return db
     .query(
       `UPDATE articles

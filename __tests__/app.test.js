@@ -777,3 +777,86 @@ describe("GET /api/users/:username", () => {
       });
   });
 });
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("should respond with updated comment", () => {
+    const body = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { comment } = response.body;
+        const expected = {
+          comment_id: 1,
+          author: "butter_bridge",
+          article_id: 9,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          created_at: "2020-04-06T11:17:00.000Z",
+          votes: 17,
+        };
+        expect(typeof comment).toBe("object");
+        expect(Array.isArray(comment)).toBe(false);
+        expect(comment).toEqual(expected);
+      });
+  });
+
+  test("should allow subtraction of votes", () => {
+    const body = { inc_votes: -10 };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { comment } = response.body;
+        expect(comment.votes).toBe(6);
+      });
+  });
+
+  test("should respond with unchanged comment if no increment included", () => {
+    const body = {};
+    return request(app)
+      .patch("/api/comments/1")
+      .send(body)
+      .expect(200)
+      .then((response) => {
+        const { comment } = response.body;
+        expect(comment.votes).toBe(16);
+      });
+  });
+  test("should respond with 404 for valid but non existent comment request", () => {
+    const body = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/comments/1000")
+      .send(body)
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("comment not found");
+      });
+  });
+
+  test("should respond with 400 error for invalid comment request", () => {
+    const body = { inc_votes: 5 };
+    return request(app)
+      .patch("/api/comments/robot")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("should respond with 400 error for invalid update", () => {
+    const body = { inc_votes: "robot" };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+});
