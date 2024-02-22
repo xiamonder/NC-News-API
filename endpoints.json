@@ -55,6 +55,19 @@
       ]
     }
   },
+  "GET /api/users/:username": {
+    "description": "serves data of specified user",
+    "queries": ["username"],
+    "exampleResponse": {
+      "user": [
+        {
+          "username": "butter_bridge",
+          "name": "jonny",
+          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        }
+      ]
+    }
+  },
   "GET /api/articles/:article_id": {
     "description": "serves data of specified article",
     "queries": ["article_id"],
