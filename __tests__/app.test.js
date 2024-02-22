@@ -205,20 +205,47 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then((response) => {
         const { articles } = response.body;
-        articles.forEach((article)=>{
-          expect(article.topic).toBe('mitch')
-        })
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
       });
-});
-test("should return empty array for valid topic query without associated article", () => {
-  return request(app)
-    .get("/api/articles?topic=paper")
-    .expect(200)
-    .then((response) => {
-      const { articles } = response.body;
-      expect(articles).toEqual([]);
+  });
+  test("should return empty array for valid topic query without associated article", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles).toEqual([]);
       });
-    });
+  });
+  test("should allow sorting by columns with order ", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author&order=asc")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles).toBeSortedBy("author", { ascending: true });
+      });
+  });
+  test("should work without order query ", () => {
+    return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles).toBeSortedBy("created_at", { ascending: true });
+      });
+  });
+  test("should work without sort query ", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
 
   test("should return 404 for topic query that doesn't exist", () => {
     return request(app)
@@ -229,7 +256,27 @@ test("should return empty array for valid topic query without associated article
         expect(msg).toBe("topic not found");
       });
   });
-})
+
+  test("should return 400 for invalid sort query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid sort query");
+      });
+  });
+
+  test("should return 400 for invalid order query", () => {
+    return request(app)
+      .get("/api/articles?order=robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid order query");
+      });
+  });
+});
 
 describe("GET /api/users", () => {
   test("should respond with sorted array of article objects ", () => {
@@ -289,7 +336,7 @@ describe("GET /api/articles/:article_id", () => {
         expect(typeof article.created_at).toBe("string");
         expect(typeof article.votes).toBe("number");
         expect(typeof article.article_img_url).toBe("string");
-        expect(typeof article.comment_count).toBe('string')
+        expect(typeof article.comment_count).toBe("string");
       });
   });
 
@@ -309,7 +356,8 @@ describe("GET /api/articles/:article_id", () => {
           votes: 100,
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-        comment_count: '11'};
+          comment_count: "11",
+        };
         expect(article).toEqual(expected);
       });
   });
