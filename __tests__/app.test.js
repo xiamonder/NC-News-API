@@ -1105,6 +1105,69 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 
+describe("DELETE /api/articles/:article_id", () => {
+  test("should respond with correct status code", () => {
+    return request(app).delete("/api/articles/1").expect(204);
+  });
+
+  test("should remove article from database", () => {
+    return request(app)
+      .delete("/api/articles/1")
+      .expect(204)
+      .then(() => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then((response) => {
+            const { articles } = response.body;
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles[0].total_results).toBe("12");
+            articles.forEach((article) => {
+              expect(article.article_id).not.toBe(1);
+            });
+          });
+      });
+  });
+  test("should remove article comments from database", () => {
+    return request(app)
+      .delete("/api/articles/1")
+      .expect(204)
+      .then(() => {
+        return request(app)
+          .get("/api/comments")
+          .expect(200)
+          .then((response) => {
+            const { comments } = response.body;
+            expect(Array.isArray(comments)).toBe(true);
+            expect(comments.length).toBe(7);
+            comments.forEach((comment) => {
+              expect(comment.article_id).not.toBe(1);
+            });
+          });
+      });
+  });
+
+  test("should respond with 404 for valid but non existent comment request", () => {
+    return request(app)
+      .delete("/api/articles/1000")
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("article not found");
+      });
+  });
+
+  test("should respond with 400 error for invalid comment request", () => {
+    return request(app)
+      .delete("/api/articles/robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
 describe("GET /api/comments", () => {
   test("should respond with an array of comment objects ", () => {
     return request(app)

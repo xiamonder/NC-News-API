@@ -138,3 +138,14 @@ exports.alterArticleVotes = (article_id, inc_votes = 0) => {
       return rows[0];
     });
 };
+
+exports.removeArticle = (article_id) => {
+  return db
+    .query(`DELETE FROM articles where article_id = $1`, [article_id])
+    .then(({ rows, rowCount }) => {
+      if (rowCount === 0) {
+        return Promise.reject({ status: 404, msg: "article not found" });
+      }
+      return rows;
+    });
+};
