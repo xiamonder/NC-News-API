@@ -85,9 +85,22 @@ exports.addArticle = (author, title, body, topic, article_img_url) => {
   });
 };
 
-exports.fetchArticleComments = (article_id) => {
+exports.fetchArticleComments = (article_id, limit = 10, p = 1) => {
+  if (isNaN(Number(limit))) {
+    return Promise.reject({ status: 400, msg: "invalid limit request" });
+  }
+
+  if (isNaN(Number(p))) {
+    return Promise.reject({ status: 400, msg: "invalid page request" });
+  }
+
+  const offset = p * limit - limit;
+
   return db
-    .query(`SELECT * FROM comments WHERE article_id = $1`, [article_id])
+    .query(
+      `SELECT *, ROW_NUMBER() OVER () AS result, COUNT(*) OVER() AS total_results FROM comments WHERE article_id = $1 LIMIT ${limit} OFFSET ${offset}`,
+      [article_id]
+    )
     .then(({ rows }) => {
       return rows;
     });

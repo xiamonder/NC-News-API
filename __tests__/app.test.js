@@ -639,7 +639,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .then((response) => {
         const { comments } = response.body;
         expect(Array.isArray(comments)).toBe(true);
-        expect(comments.length).toBe(11);
+        expect(comments.length).toBe(10);
       });
   });
 
@@ -673,6 +673,8 @@ describe("GET /api/articles/:article_id/comments", () => {
           comment_id: 2,
           created_at: "2020-10-31T02:03:00.000Z",
           votes: 14,
+          result: "1",
+          total_results: "11",
         };
         expect(comments[0]).toEqual(expected);
       });
@@ -687,7 +689,73 @@ describe("GET /api/articles/:article_id/comments", () => {
         expect(comments).toEqual([]);
       });
   });
+  test("should allow pagination ", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5&p=2")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments.length).toBe(5);
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments[0].result).toBe("6");
+        expect(comments[0].total_results).toBe("11");
+      });
+  });
+  test("should allow pagination with only limit", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments.length).toBe(5);
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments[0].result).toBe("1");
+        expect(comments[0].total_results).toBe("11");
+      });
+  });
 
+  test("should allow pagination with only page", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=2")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments.length).toBe(1);
+        expect(Array.isArray(comments)).toBe(true);
+        expect(comments[0].result).toBe("11");
+        expect(comments[0].total_results).toBe("11");
+      });
+  });
+
+  test("should return empty array for requests past last result", () => {
+    return request(app)
+      .get("/api/articles/1/comments?p=5")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments.length).toBe(0);
+        expect(Array.isArray(comments)).toBe(true);
+      });
+  });
+  test("should 400 for invalid page query ", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=5&p=robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid page request");
+      });
+  });
+
+  test("should 400 for invalid limit query ", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=robot&p=1")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid limit request");
+      });
+  });
   test("should respond with 404 for valid but non existent request", () => {
     return request(app)
       .get("/api/articles/1000/comments")
@@ -792,7 +860,7 @@ describe("POST /api/articles/:article_id/comments", () => {
           .then((response) => {
             const { comments } = response.body;
             expect(Array.isArray(comments)).toBe(true);
-            expect(comments.length).toBe(12);
+            expect(comments[0].total_results).toBe("12");
           });
       });
   });
