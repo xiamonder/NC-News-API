@@ -19,21 +19,18 @@ exports.fetchTopicBySlug = (topic) => {
 };
 
 exports.addTopic = (slug, description) => {
-
-    const queryString = format(
-      `INSERT INTO topics (slug, description) VALUES %L RETURNING *;`,
-      [[slug, description]]
-    );
-    console.log(queryString)
-    return db
-      .query(queryString)
-      .then(({ rows }) => {
-        return rows[0];
-      })
-      .catch((err) => {
-        console.log(err)
-        if (err.code === "23505") {
-          return Promise.reject({ status: 400, msg: "topic already exists" });
-        } else return Promise.reject(err);
-      });
-  };
+  const queryString = format(
+    `INSERT INTO topics (slug, description) VALUES %L RETURNING *;`,
+    [[slug, description]]
+  );
+  return db
+    .query(queryString)
+    .then(({ rows }) => {
+      return rows[0];
+    })
+    .catch((err) => {
+      if (err.code === "23505") {
+        return Promise.reject({ status: 400, msg: "topic already exists" });
+      } else return Promise.reject(err);
+    });
+};

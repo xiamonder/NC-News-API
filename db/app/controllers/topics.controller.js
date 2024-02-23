@@ -12,7 +12,6 @@ exports.getTopics = (req, res, next) => {
 
 exports.postTopic = (req, res, next) => {
   const { slug, description } = req.body;
-  console.log(slug, description);
   addTopic(slug, description)
     .then((topic) => {
       res.status(201).send({ topic });

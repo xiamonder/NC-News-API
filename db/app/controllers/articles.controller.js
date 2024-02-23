@@ -5,12 +5,14 @@ const {
   addComment,
   alterArticleVotes,
   addArticle,
+  removeArticle,
 } = require("../models/articles.model");
 const { fetchTopicBySlug } = require("../models/topics.model");
 const { fetchUserByUsername } = require("../models/users.model");
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
+
   fetchArticleById(article_id)
     .then((article) => {
       res.status(200).send({ article });
@@ -57,9 +59,22 @@ exports.postArticle = (req, res, next) => {
   }
 };
 
+exports.deleteArticle = (req, res, next) => {
+  const { article_id } = req.params;
+
+  removeArticle(article_id)
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
 exports.getArticleComments = (req, res, next) => {
   const { article_id } = req.params;
   const { limit, p } = req.query;
+
   const promises = [
     fetchArticleById(article_id),
     fetchArticleComments(article_id, limit, p),
@@ -76,6 +91,7 @@ exports.getArticleComments = (req, res, next) => {
 exports.postComment = (req, res, next) => {
   const { article_id } = req.params;
   const comment = req.body;
+
   const promises = [
     fetchArticleById(article_id),
     addComment(article_id, comment),
@@ -93,6 +109,7 @@ exports.postComment = (req, res, next) => {
 exports.updateArticleVotes = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes } = req.body;
+
   alterArticleVotes(article_id, inc_votes)
     .then((article) => {
       res.status(200).send({ article });
