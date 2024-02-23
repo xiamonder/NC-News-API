@@ -4,8 +4,10 @@ const {
   fetchArticleComments,
   addComment,
   alterArticleVotes,
+  addArticle,
 } = require("../models/articles.model");
 const { fetchTopicBySlug } = require("../models/topics.model");
+const { fetchUserByUsername } = require("../models/users.model");
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -33,6 +35,28 @@ exports.getArticles = (req, res, next) => {
     });
 };
 
+exports.postArticle = (req, res, next) => {
+  const { author, title, body, topic, article_img_url } = req.body;
+
+  if (!author || !title || !body || !topic) {
+    res.status(400).send({ msg: "bad request" });
+  } else {
+    const promises = [
+      fetchUserByUsername(author),
+      fetchTopicBySlug(topic),
+      addArticle(author, title, body, topic, article_img_url),
+    ];
+    Promise.all(promises)
+      .then((promiseResolutions) => {
+        res.status(201).send({ article: promiseResolutions[2] });
+      })
+      .catch((err) => {
+        console.log(err);
+        next(err);
+      });
+  }
+};
+
 exports.getArticleComments = (req, res, next) => {
   const { article_id } = req.params;
   const promises = [
@@ -44,6 +68,7 @@ exports.getArticleComments = (req, res, next) => {
       res.status(200).send({ comments: promiseResolutions[0] });
     })
     .catch((err) => {
+      console.log(err)
       next(err);
     });
 };

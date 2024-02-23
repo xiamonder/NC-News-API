@@ -383,6 +383,187 @@ describe("GET /api/articles/:article_id", () => {
   });
 });
 
+describe("POST /api/articles", () => {
+  test("should respond with object with correct keys", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "mitch",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { article } = response.body;
+        expect(typeof article).toBe("object");
+        expect(Array.isArray(article)).toBe(false);
+        expect(typeof article.article_id).toBe("number");
+        expect(typeof article.title).toBe("string");
+        expect(typeof article.topic).toBe("string");
+        expect(typeof article.author).toBe("string");
+        expect(typeof article.body).toBe("string");
+        expect(typeof article.created_at).toBe("string");
+        expect(typeof article.votes).toBe("number");
+        expect(typeof article.article_img_url).toBe("string");
+        expect(typeof article.comment_count).toBe("string");
+      });
+  });
+  test("should respond with object with correct properties", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "mitch",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { article } = response.body;
+        expect(article).toHaveProperty("article_id", 14);
+        expect(article).toHaveProperty("title", "Am I a cat?");
+        expect(article).toHaveProperty("topic", "mitch");
+        expect(article).toHaveProperty("author", "icellusedkars");
+        expect(article).toHaveProperty(
+          "body",
+          "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?"
+        );
+        expect(article).toHaveProperty("votes", 0);
+        expect(article).toHaveProperty(
+          "article_img_url",
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+        );
+        expect(article).toHaveProperty("comment_count", "0");
+      });
+  });
+  test("should ignore unneccesary info", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "mitch",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      nickname: "lurkerino",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { article } = response.body;
+        expect(article).toHaveProperty("article_id", 14);
+        expect(article).toHaveProperty("title", "Am I a cat?");
+        expect(article).toHaveProperty("topic", "mitch");
+        expect(article).toHaveProperty("author", "icellusedkars");
+        expect(article).toHaveProperty(
+          "body",
+          "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?"
+        );
+        expect(article).toHaveProperty("votes", 0);
+        expect(article).toHaveProperty(
+          "article_img_url",
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+        );
+        expect(article).toHaveProperty("comment_count", "0");
+        expect(article).not.toHaveProperty("nickname");
+        expect(typeof article.nickname).toBe("undefined");
+      });
+  });
+  test("should be included in articles table", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "mitch",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then(() => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then((response) => {
+            const { articles } = response.body;
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles.length).toBe(14);
+          });
+      });
+  });
+
+  test("should respond with 400 error for missing details", () => {
+    const body = {
+      topic: "mitch",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
+      });
+  });
+
+  test("should respond with 404 error for invalid username", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "mitch",
+      author: "robot",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("user not found");
+      });
+  });
+
+  test("should respond with 404 error for invalid topic", () => {
+    const body = {
+      title: "Am I a cat?",
+      topic: "robot",
+      author: "icellusedkars",
+      body: "Having run out of ideas for articles, I am staring at the wall blankly, like a cat. Does this make me a cat?",
+      created_at: 1579126860000,
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("topic not found");
+      });
+  });
+});
+
 describe("GET /api/articles/:article_id/comments", () => {
   test("should respond with an object with an array of comments", () => {
     return request(app)
@@ -395,7 +576,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 
-  test("comment objects should have the correct keys", () => {
+  test("article objects should have the correct keys", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
@@ -761,7 +942,8 @@ describe("GET /api/users/:username", () => {
         const expected = {
           name: "jonny",
           username: "butter_bridge",
-          avatar_url:"https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+          avatar_url:
+            "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
         };
         expect(user).toEqual(expected);
       });
