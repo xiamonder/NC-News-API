@@ -1,20 +1,6 @@
 const db = require("../../connection");
 const format = require("pg-format");
 
-exports.fetchArticleById = (articleId) => {
-  return db
-    .query(
-      `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.body, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id WHERE articles.article_id = $1 GROUP BY articles.article_id`,
-      [articleId]
-    )
-    .then(({ rows }) => {
-      if (rows.length === 0) {
-        return Promise.reject({ status: 404, msg: "article not found" });
-      }
-      return rows[0];
-    });
-};
-
 exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
   if (
     ![
@@ -46,6 +32,38 @@ exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
 
   return db.query(queryString, queryValues).then(({ rows }) => {
     return rows;
+  });
+};
+
+exports.fetchArticleById = (articleId) => {
+  return db
+    .query(
+      `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.body, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id WHERE articles.article_id = $1 GROUP BY articles.article_id`,
+      [articleId]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "article not found" });
+      }
+      return rows[0];
+    });
+};
+
+exports.addArticle = (author, title, body, topic, article_img_url) => {
+  const queryString = format(
+    `INSERT INTO articles (author, title, body,topic,article_img_url) VALUES %L RETURNING *;`,
+    [[author, title, body, topic, article_img_url]]
+  );
+  return db.query(queryString).then(({ rows }) => {
+    const article_id = rows[0].article_id;
+    return db
+      .query(
+        `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.body, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id WHERE articles.article_id = $1 GROUP BY articles.article_id`,
+        [article_id]
+      )
+      .then(({ rows }) => {
+        return rows[0];
+      });
   });
 };
 
