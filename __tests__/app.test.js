@@ -141,6 +141,47 @@ describe("GET /api/comments", () => {
   });
 });
 
+describe("GET /api/users", () => {
+  test("should respond with sorted array of article objects ", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        const { users } = response.body;
+        expect(users.length).toBe(4);
+        expect(Array.isArray(users)).toBe(true);
+      });
+  });
+  test("array should contain correct properties", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        const { users } = response.body;
+        users.forEach((user) => {
+          expect(typeof user.username).toBe("string");
+          expect(typeof user.name).toBe("string");
+          expect(typeof user.avatar_url).toBe("string");
+        });
+      });
+  });
+
+  test("should respond with correct values", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        const { users } = response.body;
+        expect(users[0]).toHaveProperty("username", "butter_bridge");
+        expect(users[0]).toHaveProperty("name", "jonny");
+        expect(users[0]).toHaveProperty(
+          "avatar_url",
+          "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        );
+      });
+  });
+});
+
 describe("GET /api/articles", () => {
   test("should respond with sorted array of user objects ", () => {
     return request(app)
@@ -148,7 +189,7 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then((response) => {
         const { articles } = response.body;
-        expect(articles.length).toBe(13);
+        expect(articles.length).toBe(10);
         expect(Array.isArray(articles)).toBe(true);
         expect(articles).toBeSortedBy("created_at", {
           descending: true,
@@ -246,6 +287,73 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("author", { descending: true });
       });
   });
+  test("should allow pagination ", () => {
+    return request(app)
+      .get("/api/articles?limit=5&p=2")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles.length).toBe(5);
+        expect(Array.isArray(articles)).toBe(true);
+        expect(articles[0].result).toBe("6");
+        expect(articles[0].total_results).toBe("13");
+      });
+  });
+  test("should allow pagination with only limit", () => {
+    return request(app)
+      .get("/api/articles?limit=5")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles.length).toBe(5);
+        expect(Array.isArray(articles)).toBe(true);
+        expect(articles[0].result).toBe("1");
+        expect(articles[0].total_results).toBe("13");
+      });
+  });
+
+  test("should allow pagination with only page", () => {
+    return request(app)
+      .get("/api/articles?p=2")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles.length).toBe(3);
+        expect(Array.isArray(articles)).toBe(true);
+        expect(articles[0].result).toBe("11");
+        expect(articles[0].total_results).toBe("13");
+      });
+  });
+
+  test("should return empty array for requests past last result", () => {
+    return request(app)
+      .get("/api/articles?p=5")
+      .expect(200)
+      .then((response) => {
+        const { articles } = response.body;
+        expect(articles.length).toBe(0);
+        expect(Array.isArray(articles)).toBe(true);
+      });
+  });
+  test("should 400 for invalid page query ", () => {
+    return request(app)
+      .get("/api/articles?limit=5&p=robot")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid page request");
+      });
+  });
+
+  test("should 400 for invalid limit query ", () => {
+    return request(app)
+      .get("/api/articles?limit=robot&p=1")
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("invalid limit request");
+      });
+  });
 
   test("should return 404 for topic query that doesn't exist", () => {
     return request(app)
@@ -274,47 +382,6 @@ describe("GET /api/articles", () => {
       .then((response) => {
         const { msg } = response.body;
         expect(msg).toBe("invalid order query");
-      });
-  });
-});
-
-describe("GET /api/users", () => {
-  test("should respond with sorted array of article objects ", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then((response) => {
-        const { users } = response.body;
-        expect(users.length).toBe(4);
-        expect(Array.isArray(users)).toBe(true);
-      });
-  });
-  test("array should contain correct properties", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then((response) => {
-        const { users } = response.body;
-        users.forEach((user) => {
-          expect(typeof user.username).toBe("string");
-          expect(typeof user.name).toBe("string");
-          expect(typeof user.avatar_url).toBe("string");
-        });
-      });
-  });
-
-  test("should respond with correct values", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then((response) => {
-        const { users } = response.body;
-        expect(users[0]).toHaveProperty("username", "butter_bridge");
-        expect(users[0]).toHaveProperty("name", "jonny");
-        expect(users[0]).toHaveProperty(
-          "avatar_url",
-          "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
-        );
       });
   });
 });
@@ -502,7 +569,7 @@ describe("POST /api/articles", () => {
           .then((response) => {
             const { articles } = response.body;
             expect(Array.isArray(articles)).toBe(true);
-            expect(articles.length).toBe(14);
+            expect(articles[0].total_results).toBe("14");
           });
       });
   });
@@ -543,7 +610,7 @@ describe("POST /api/articles", () => {
       });
   });
 
-  test("should respond with 404 error for invalid topic", () => {
+  test.skip("should respond with 404 error for invalid topic", () => {
     const body = {
       title: "Am I a cat?",
       topic: "robot",

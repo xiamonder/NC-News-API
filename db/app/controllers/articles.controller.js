@@ -21,8 +21,9 @@ exports.getArticleById = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  const { topic, sort_by, order } = req.query;
-  const promises = [fetchArticles(topic, sort_by, order)];
+  const { topic, sort_by, order, limit, p } = req.query;
+
+  const promises = [fetchArticles(topic, sort_by, order, limit, p)];
   if (topic) {
     promises.push(fetchTopicBySlug(topic));
   }
@@ -51,7 +52,6 @@ exports.postArticle = (req, res, next) => {
         res.status(201).send({ article: promiseResolutions[2] });
       })
       .catch((err) => {
-        console.log(err);
         next(err);
       });
   }
@@ -68,7 +68,6 @@ exports.getArticleComments = (req, res, next) => {
       res.status(200).send({ comments: promiseResolutions[0] });
     })
     .catch((err) => {
-      console.log(err)
       next(err);
     });
 };

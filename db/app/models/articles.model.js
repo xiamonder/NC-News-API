@@ -1,7 +1,13 @@
 const db = require("../../connection");
 const format = require("pg-format");
 
-exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
+exports.fetchArticles = (
+  topic,
+  sort_by = "created_at",
+  order = "DESC",
+  limit = 10,
+  p = 1
+) => {
   if (
     ![
       "author",
@@ -20,7 +26,17 @@ exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
     return Promise.reject({ status: 400, msg: "invalid order query" });
   }
 
-  let queryString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id`;
+  if (isNaN(Number(limit))) {
+    return Promise.reject({ status: 400, msg: "invalid limit request" });
+  }
+
+  if (isNaN(Number(p))) {
+    return Promise.reject({ status: 400, msg: "invalid page request" });
+  }
+
+  const offset = p * limit - limit;
+
+  let queryString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count, ROW_NUMBER() OVER (ORDER BY articles.${sort_by} ${order}) AS result, COUNT(*) OVER() AS total_results FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id`;
   const queryValues = [];
 
   if (topic) {
@@ -28,7 +44,9 @@ exports.fetchArticles = (topic, sort_by = "created_at", order = "DESC") => {
     queryValues.push(topic);
   }
 
-  queryString += ` GROUP BY articles.article_id ORDER BY ${sort_by} ${order};`;
+  queryString += ` GROUP BY articles.article_id`;
+
+  queryString += ` LIMIT ${limit} OFFSET ${offset}`;
 
   return db.query(queryString, queryValues).then(({ rows }) => {
     return rows;
