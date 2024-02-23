@@ -90,53 +90,105 @@ describe("GET /api/topics", () => {
   });
 });
 
-describe("GET /api/comments", () => {
-  test("should respond with an array of comment objects ", () => {
+describe("POST /api/topics", () => {
+  test("should respond with object with correct keys", () => {
+    const body = {
+      slug: "frogs",
+      description: "just a cool animal",
+    };
     return request(app)
-      .get("/api/comments")
-      .expect(200)
+      .post("/api/topics")
+      .send(body)
+      .expect(201)
       .then((response) => {
-        const { comments } = response.body;
-        expect(comments.length).toBe(18);
-        expect(Array.isArray(comments)).toBe(true);
-        expect(typeof comments[0]).toBe("object");
+        const { topic } = response.body;
+        expect(typeof topic).toBe("object");
+        expect(Array.isArray(topic)).toBe(false);
+        expect(typeof topic.slug).toBe("string");
+        expect(typeof topic.description).toBe("string");
       });
   });
-  test("array should contain correct properties", () => {
+  test("should respond with object with correct properties", () => {
+    const body = {
+      slug: "frogs",
+      description: "just a cool animal",
+    };
     return request(app)
-      .get("/api/comments")
-      .expect(200)
+      .post("/api/topics")
+      .send(body)
+      .expect(201)
       .then((response) => {
-        const { comments } = response.body;
-        comments.forEach((comment) => {
-          expect(typeof comment.article_id).toBe("number");
-          expect(typeof comment.author).toBe("string");
-          expect(typeof comment.body).toBe("string");
-          expect(typeof comment.comment_id).toBe("number");
-          expect(typeof comment.created_at).toBe("string");
-          expect(typeof comment.votes).toBe("number");
-        });
+        const { topic } = response.body;
+        expect(topic).toHaveProperty("slug", "frogs");
+        expect(topic).toHaveProperty("description", "just a cool animal");
+      });
+  });
+  test("should ignore unneccesary info", () => {
+    const body = {
+      slug: "frogs",
+      description: "just a cool animal",
+      nickname: "frogger",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(201)
+      .then((response) => {
+        const { topic } = response.body;
+        expect(topic).toHaveProperty("slug", "frogs");
+        expect(topic).toHaveProperty("description", "just a cool animal");
+        expect(topic).not.toHaveProperty("nickname", "frogger");
+        expect(typeof topic.nickname).toBe("undefined");
+      });
+  });
+  test("should be included in topics", () => {
+    const body = {
+      slug: "frogs",
+      description: "just a cool animal",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(201)
+      .then(() => {
+        return request(app)
+          .get("/api/topics")
+          .expect(200)
+          .then((response) => {
+            const { topics } = response.body;
+            expect(topics.length).toBe(4);
+            expect(Array.isArray(topics)).toBe(true);
+            expect(typeof topics[0]).toBe("object");
+          });
       });
   });
 
-  test("should respond with correct values", () => {
+  test("should respond with 400 error if topic already exists", () => {
+    const body = {
+      slug: "paper",
+      description: "what books are made of",
+    };
     return request(app)
-      .get("/api/comments")
-      .expect(200)
+      .post("/api/topics")
+      .send(body)
+      .expect(400)
       .then((response) => {
-        const { comments } = response.body;
-        expect(comments[0]).toHaveProperty("article_id", 9);
-        expect(comments[0]).toHaveProperty("author", "butter_bridge");
-        expect(comments[0]).toHaveProperty(
-          "body",
-          "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
-        );
-        expect(comments[0]).toHaveProperty("comment_id", 1);
-        expect(comments[0]).toHaveProperty(
-          "created_at",
-          "2020-04-06T11:17:00.000Z"
-        );
-        expect(comments[0]).toHaveProperty("votes", 16);
+        const { msg } = response.body;
+        expect(msg).toBe("topic already exists");
+      });
+  });
+
+  test("should respond with 400 error for invalid body", () => {
+    const body = {
+      description: "just a cool animal",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(400)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("bad request");
       });
   });
 });
@@ -178,6 +230,48 @@ describe("GET /api/users", () => {
           "avatar_url",
           "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
         );
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("should respond with an object with correct keys ", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then((response) => {
+        const { user } = response.body;
+        expect(typeof user).toBe("object");
+        expect(Array.isArray(user)).toBe(false);
+        expect(typeof user.username).toBe("string");
+        expect(typeof user.name).toBe("string");
+        expect(typeof user.avatar_url).toBe("string");
+      });
+  });
+
+  test("should return correct data for article", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then((response) => {
+        const { user } = response.body;
+        const expected = {
+          name: "jonny",
+          username: "butter_bridge",
+          avatar_url:
+            "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+        };
+        expect(user).toEqual(expected);
+      });
+  });
+
+  test("should respond with 404 for valid but non existent request", () => {
+    return request(app)
+      .get("/api/users/robto")
+      .expect(404)
+      .then((response) => {
+        const { msg } = response.body;
+        expect(msg).toBe("user not found");
       });
   });
 });
@@ -610,7 +704,7 @@ describe("POST /api/articles", () => {
       });
   });
 
-  test.skip("should respond with 404 error for invalid topic", () => {
+  test("should respond with 404 error for invalid topic", () => {
     const body = {
       title: "Am I a cat?",
       topic: "robot",
@@ -1011,6 +1105,57 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 
+describe("GET /api/comments", () => {
+  test("should respond with an array of comment objects ", () => {
+    return request(app)
+      .get("/api/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments.length).toBe(18);
+        expect(Array.isArray(comments)).toBe(true);
+        expect(typeof comments[0]).toBe("object");
+      });
+  });
+  test("array should contain correct properties", () => {
+    return request(app)
+      .get("/api/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        comments.forEach((comment) => {
+          expect(typeof comment.article_id).toBe("number");
+          expect(typeof comment.author).toBe("string");
+          expect(typeof comment.body).toBe("string");
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.created_at).toBe("string");
+          expect(typeof comment.votes).toBe("number");
+        });
+      });
+  });
+
+  test("should respond with correct values", () => {
+    return request(app)
+      .get("/api/comments")
+      .expect(200)
+      .then((response) => {
+        const { comments } = response.body;
+        expect(comments[0]).toHaveProperty("article_id", 9);
+        expect(comments[0]).toHaveProperty("author", "butter_bridge");
+        expect(comments[0]).toHaveProperty(
+          "body",
+          "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"
+        );
+        expect(comments[0]).toHaveProperty("comment_id", 1);
+        expect(comments[0]).toHaveProperty(
+          "created_at",
+          "2020-04-06T11:17:00.000Z"
+        );
+        expect(comments[0]).toHaveProperty("votes", 16);
+      });
+  });
+});
+
 describe("DELETE /api/comments/:comment_id", () => {
   test("should respond with correct status code", () => {
     return request(app).delete("/api/comments/1").expect(204);
@@ -1049,48 +1194,6 @@ describe("DELETE /api/comments/:comment_id", () => {
       .then((response) => {
         const { msg } = response.body;
         expect(msg).toBe("bad request");
-      });
-  });
-});
-
-describe("GET /api/users/:username", () => {
-  test("should respond with an object with correct keys ", () => {
-    return request(app)
-      .get("/api/users/butter_bridge")
-      .expect(200)
-      .then((response) => {
-        const { user } = response.body;
-        expect(typeof user).toBe("object");
-        expect(Array.isArray(user)).toBe(false);
-        expect(typeof user.username).toBe("string");
-        expect(typeof user.name).toBe("string");
-        expect(typeof user.avatar_url).toBe("string");
-      });
-  });
-
-  test("should return correct data for article", () => {
-    return request(app)
-      .get("/api/users/butter_bridge")
-      .expect(200)
-      .then((response) => {
-        const { user } = response.body;
-        const expected = {
-          name: "jonny",
-          username: "butter_bridge",
-          avatar_url:
-            "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
-        };
-        expect(user).toEqual(expected);
-      });
-  });
-
-  test("should respond with 404 for valid but non existent request", () => {
-    return request(app)
-      .get("/api/users/robto")
-      .expect(404)
-      .then((response) => {
-        const { msg } = response.body;
-        expect(msg).toBe("user not found");
       });
   });
 });
