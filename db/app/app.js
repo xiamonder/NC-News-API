@@ -11,19 +11,17 @@ const userRouter = require("./routers/users.router.js");
 const topicRouter = require("./routers/topics.router.js");
 const articleRouter = require("./routers/articles.router.js");
 const commentRouter = require("./routers/comments.router.js");
-
 const app = express();
+const cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
-
 app.use("/api", apiRouter);
 
 app.get("/", (req, res) => {
-  res
-    .status(200)
-    .send({
-      msg: "Connected to NC News API, please go to /api for available endpoints",
-    });
+  res.status(200).send({
+    msg: "Connected to NC News API, please go to /api for available endpoints",
+  });
 });
 
 app.all("/*", (req, res) => {
