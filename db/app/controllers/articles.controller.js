@@ -44,14 +44,25 @@ exports.postArticle = (req, res, next) => {
   if (!author || !title || !body || !topic) {
     res.status(400).send({ msg: "bad request" });
   } else {
-    const promises = [
-      fetchUserByUsername(author),
-      fetchTopicBySlug(topic),
-      addArticle(author, title, body, topic, article_img_url),
-    ];
-    Promise.all(promises)
-      .then((promiseResolutions) => {
-        res.status(201).send({ article: promiseResolutions[2] });
+    //   const promises = [
+    //     fetchUserByUsername(author),
+    //     fetchTopicBySlug(topic),
+    //     addArticle(author, title, body, topic, article_img_url),
+    //   ];
+    //   Promise.all(promises)
+    //     .then((promiseResolutions) => {
+    //       res.status(201).send({ article: promiseResolutions[2] });
+    //     })
+    //     .catch((err) => {
+    //       next(err);
+    //     });
+    // }
+    Promise.all([fetchUserByUsername(author), fetchTopicBySlug(topic)])
+      .then(() => {
+        return addArticle(author, title, body, topic, article_img_url);
+      })
+      .then((addedArticle) => {
+        res.status(201).send({ article: addedArticle });
       })
       .catch((err) => {
         next(err);

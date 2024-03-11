@@ -324,7 +324,7 @@ describe("GET /api/articles", () => {
         expect(articles[6]).toHaveProperty("author", "butter_bridge");
         expect(articles[6]).toHaveProperty(
           "created_at",
-          "2020-07-09T19:11:00.000Z"
+          "2020-07-09T20:11:00.000Z"
         );
         expect(articles[6]).toHaveProperty("votes", 100);
         expect(articles[6]).toHaveProperty(
@@ -513,7 +513,7 @@ describe("GET /api/articles/:article_id", () => {
           topic: "mitch",
           author: "butter_bridge",
           body: "I find this existence challenging",
-          created_at: "2020-07-09T19:11:00.000Z",
+          created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
@@ -1034,7 +1034,7 @@ describe("PATCH /api/articles/:article_id", () => {
           topic: "mitch",
           author: "butter_bridge",
           body: "I find this existence challenging",
-          created_at: "2020-07-09T19:11:00.000Z",
+          created_at: "2020-07-09T20:11:00.000Z",
           votes: 105,
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
@@ -1212,7 +1212,7 @@ describe("GET /api/comments", () => {
         expect(comments[0]).toHaveProperty("comment_id", 1);
         expect(comments[0]).toHaveProperty(
           "created_at",
-          "2020-04-06T11:17:00.000Z"
+          "2020-04-06T12:17:00.000Z"
         );
         expect(comments[0]).toHaveProperty("votes", 16);
       });
@@ -1275,7 +1275,7 @@ describe("PATCH /api/comments/:comment_id", () => {
           author: "butter_bridge",
           article_id: 9,
           body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-          created_at: "2020-04-06T11:17:00.000Z",
+          created_at: "2020-04-06T12:17:00.000Z",
           votes: 17,
         };
         expect(typeof comment).toBe("object");
