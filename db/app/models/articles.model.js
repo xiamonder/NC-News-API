@@ -35,18 +35,34 @@ exports.fetchArticles = (
   }
 
   const offset = p * limit - limit;
+  let sort = "";
+  if (sort_by.toLowerCase() === "comment_count") {
+    sort = `comment_count`;
+  } else {
+    sort = `articles.${sort_by}`;
+  }
 
-  let queryString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, COUNT (comments.comment_id) as comment_count, ROW_NUMBER() OVER (ORDER BY articles.${sort_by} ${order}) AS result, COUNT(*) OVER() AS total_results FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id`;
+  let queryString = `WITH processedArticles AS ( SELECT
+    articles.author,
+    articles.title,
+    articles.article_id,
+    articles.topic,
+    articles.created_at,
+    articles.votes,
+    articles.article_img_url,
+    COUNT(comments.comment_id) AS comment_count
+  FROM
+    articles
+  LEFT JOIN comments ON articles.article_id = comments.article_id`
+
   const queryValues = [];
 
   if (topic) {
-    queryString += ` WHERE topic = $1`;
+    queryString += ` WHERE articles.topic = $1`;
     queryValues.push(topic);
   }
 
-  queryString += ` GROUP BY articles.article_id`;
-
-  queryString += ` LIMIT ${limit} OFFSET ${offset}`;
+  queryString += ` GROUP BY articles.article_id) SELECT *, ROW_NUMBER() OVER (ORDER BY ${sort} ${order}) AS result, COUNT (*) OVER() AS total_results FROM processedArticles LIMIT ${limit} OFFSET ${offset}`;
 
   return db.query(queryString, queryValues).then(({ rows }) => {
     return rows;
