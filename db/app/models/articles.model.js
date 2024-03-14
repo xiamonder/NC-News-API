@@ -35,12 +35,6 @@ exports.fetchArticles = (
   }
 
   const offset = p * limit - limit;
-  let sort = "";
-  if (sort_by.toLowerCase() === "comment_count") {
-    sort = `comment_count`;
-  } else {
-    sort = `articles.${sort_by}`;
-  }
 
   let queryString = `WITH processedArticles AS ( SELECT
     articles.author,
@@ -53,7 +47,7 @@ exports.fetchArticles = (
     COUNT(comments.comment_id) AS comment_count
   FROM
     articles
-  LEFT JOIN comments ON articles.article_id = comments.article_id`
+  LEFT JOIN comments ON articles.article_id = comments.article_id`;
 
   const queryValues = [];
 
@@ -62,7 +56,7 @@ exports.fetchArticles = (
     queryValues.push(topic);
   }
 
-  queryString += ` GROUP BY articles.article_id) SELECT *, ROW_NUMBER() OVER (ORDER BY ${sort} ${order}) AS result, COUNT (*) OVER() AS total_results FROM processedArticles LIMIT ${limit} OFFSET ${offset}`;
+  queryString += ` GROUP BY articles.article_id) SELECT *, ROW_NUMBER() OVER (ORDER BY ${sort_by} ${order}) AS result, COUNT (*) OVER() AS total_results FROM processedArticles LIMIT ${limit} OFFSET ${offset}`;
 
   return db.query(queryString, queryValues).then(({ rows }) => {
     return rows;
